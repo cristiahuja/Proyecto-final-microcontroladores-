@@ -1,0 +1,345 @@
+#include <Servo.h>
+#include <LiquidCrystal.h>
+Servo micro_servo;
+
+int cerrar=3; //boton para cerrar 
+int abrir= 4; //boton para abrir
+int ledabierto=5;
+int ledcerrado=6;
+int x;
+
+#define RS 12
+#define E 11
+#define D4 10
+#define D5 9
+#define D6 8
+#define D7 7
+#define col 16
+#define row 2
+#define DELAY 3000
+
+LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
+
+byte a[8]={
+  B00001,
+  B00001,
+  B00001,
+  B00000,
+  B00000,
+  B00000,
+  B00001,
+  B00001,
+};
+byte b[8]={
+  B11111,
+  B00000,
+  B11001,
+  B01010,
+  B11010,
+  B10010,
+  B10100,
+  B00111,
+};
+byte c[8]={
+  B11111,
+  B00000,
+  B10011,
+  B01010,
+  B01011,
+  B01001,
+  B00101,
+  B11100,
+};
+byte d[8]={
+  B10000,
+  B10000,
+  B10000,
+  B00000,
+  B00000,
+  B00000,
+  B10000,
+  B10000,
+};
+byte e[8]={
+  B00011,
+  B00010,
+  B00110,
+  B11100,
+  B10000,
+  B11111,
+  B00000,
+  B00000,
+};
+byte f[8]={
+  B00000,
+  B01111,
+  B01000,
+  B11100,
+  B00100,
+  B11100,
+  B00000,
+  B00000,
+};
+byte g[8]={
+  B00000,
+  B11110,
+  B00010,
+  B00111,
+  B00100,
+  B00111,
+  B00000,
+  B00000,
+};
+byte h[8]={
+  B11000,
+  B01000,
+  B01100,
+  B00111,
+  B00001,
+  B11111,
+  B00000,
+  B00000,
+};
+byte i[8]={
+  B00001,
+  B00010,
+  B00100,
+  B01000,
+  B10011,
+  B10100,
+  B10100,
+  B10111,
+};
+byte j[8]={
+  B11111,
+  B00000,
+  B00000,
+  B00000,
+  B00100,
+  B10100,
+  B10100,
+  B10100,
+};
+byte k[8]={
+  B11111,
+  B00000,
+  B00000,
+  B00000,
+  B11110,
+  B01000,
+  B01001,
+  B01001,
+};
+byte l[8]={
+  B10000,
+  B01000,
+  B00100,
+  B00010,
+  B11001,
+  B00101,
+  B00101,
+  B00101,
+};
+byte m[8]={
+  B10100,
+  B10100,
+  B10100,
+  B10000,
+  B01000,
+  B00100,
+  B00010,
+  B00001,
+};
+byte n[8]={
+  B10100,
+  B10100,
+  B10111,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B11111,
+};
+byte o[8]={
+  B01001,
+  B01001,
+  B01000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B11111,
+};
+byte p[8]={
+  B00101,
+  B00101,
+  B11001,
+  B00001,
+  B00010,
+  B00100,
+  B01000,
+  B10000,
+};
+
+void setup() {
+  Serial.begin(9600); 
+  micro_servo.attach(2,750,1800); 
+  pinMode(abrir, INPUT); 
+  pinMode(cerrar, INPUT); 
+  
+  //LED CERRADO
+  pinMode(22,OUTPUT); //RED 
+  pinMode(24,OUTPUT); //GREEN  
+  pinMode(26,OUTPUT); //BLUE 
+  //LED ABIERTO 
+  pinMode(28,OUTPUT); //RED 
+  pinMode(30,OUTPUT); //GREEN  
+  pinMode(32,OUTPUT); //BLUE 
+
+ 
+ pinMode(0,INPUT); //Sensor de inclinación 
+ pinMode(1,OUTPUT); //LED a encender 
+ 
+ micro_servo.write(90); //mueve el motor hasta 90° 
+ lcd.begin(col,row);
+}
+
+  
+void loop() {  
+  
+ inclinacion(); 
+
+  x=analogRead(0); 
+  Serial.println(x);  
+  if (x >6) {
+    if(digitalRead(cerrar)==LOW) { //cerrado
+      cerrado(); 
+    }else if (digitalRead(abrir)==LOW){ //abierto
+     abierto(); 
+    }
+  }else  { //Cerrado automática
+   cerrado_automatico(); 
+  }
+}
+
+void presentacionlcd() {
+  lcd.clear();
+  lcd.createChar(0,a);
+  lcd.createChar(1,b);
+  lcd.createChar(2,c);
+  lcd.createChar(3,d);
+  lcd.createChar(4,e);
+  lcd.createChar(5,f);
+  lcd.createChar(6,g);
+  lcd.createChar(7,h);
+  lcd.setCursor(0,0); lcd.write(byte(0));
+  lcd.setCursor(1,0); lcd.write(byte(1));
+  lcd.setCursor(2,0); lcd.write(byte(2));
+  lcd.setCursor(3,0); lcd.write(byte(3));
+  lcd.setCursor(0,1); lcd.write(byte(4));
+  lcd.setCursor(1,1); lcd.write(byte(5));
+  lcd.setCursor(2,1); lcd.write(byte(6));
+  lcd.setCursor(3,1); lcd.write(byte(7));
+  lcd.setCursor(5,0); lcd.print("Universidad");
+  lcd.setCursor(5,1); lcd.print("Anahuac");
+}
+
+void abiertolcd() {
+  lcd.clear();
+  lcd.setCursor(2,0); lcd.print("* Llenando *");
+  lcd.setCursor(1,1); lcd.print("Recipiente...");
+}
+void cerradolcd() {
+  lcd.clear();
+  lcd.createChar(0,i);
+  lcd.createChar(1,j);
+  lcd.createChar(2,k);
+  lcd.createChar(3,l);
+  lcd.createChar(4,m);
+  lcd.createChar(5,n);
+  lcd.createChar(6,o);
+  lcd.createChar(7,p);
+  lcd.setCursor(0,0); lcd.write(byte(0));
+  lcd.setCursor(1,0); lcd.write(byte(1));
+  lcd.setCursor(2,0); lcd.write(byte(2));
+  lcd.setCursor(3,0); lcd.write(byte(3));
+  lcd.setCursor(0,1); lcd.write(byte(4));
+  lcd.setCursor(1,1); lcd.write(byte(5));
+  lcd.setCursor(2,1); lcd.write(byte(6));
+  lcd.setCursor(3,1); lcd.write(byte(7));
+  lcd.setCursor(5,0); lcd.print("Cerrado");
+  lcd.setCursor(5,1); lcd.print("Manual");
+}
+
+void llenolcd() {
+  lcd.clear();
+  lcd.createChar(0,i);
+  lcd.createChar(1,j);
+  lcd.createChar(2,k);
+  lcd.createChar(3,l);
+  lcd.createChar(4,m);
+  lcd.createChar(5,n);
+  lcd.createChar(6,o);
+  lcd.createChar(7,p);
+  lcd.setCursor(0,0); lcd.write(byte(0));
+  lcd.setCursor(1,0); lcd.write(byte(1));
+  lcd.setCursor(2,0); lcd.write(byte(2));
+  lcd.setCursor(3,0); lcd.write(byte(3));
+  lcd.setCursor(0,1); lcd.write(byte(4));
+  lcd.setCursor(1,1); lcd.write(byte(5));
+  lcd.setCursor(2,1); lcd.write(byte(6));
+  lcd.setCursor(3,1); lcd.write(byte(7));
+  lcd.setCursor(5,0); lcd.print("Cerrado");
+  lcd.setCursor(5,1); lcd.print("Automatico");
+} 
+
+void inclinacion (){
+    digitalWrite(1,!digitalRead(4)); 
+ }
+
+ 
+void cerrado (){
+  micro_servo.write(90); 
+  prender_led_cerrado(); 
+  apagar_led_abierto();
+  cerradolcd();
+}
+
+void abierto (){
+  micro_servo.write(0);
+  Serial.println(x); 
+  prender_led_abierto(); 
+  apagar_led_cerrado();
+  abiertolcd();
+}
+
+void cerrado_automatico (){
+  micro_servo.write(90);
+  prender_led_cerrado(); 
+  apagar_led_abierto();
+  llenolcd();
+}
+
+void prender_led_cerrado (){
+  digitalWrite(22,LOW);
+  digitalWrite(24,HIGH); 
+  digitalWrite(26,LOW);
+}
+
+void apagar_led_cerrado (){ 
+  digitalWrite(22,LOW); 
+  digitalWrite(24,LOW); 
+  digitalWrite(26,LOW);
+}
+
+void prender_led_abierto (){ 
+  digitalWrite(28,LOW); 
+  digitalWrite(30,HIGH); 
+  digitalWrite(32,LOW);
+}
+
+void apagar_led_abierto (){
+  digitalWrite(28,LOW); 
+  digitalWrite(30,LOW); 
+  digitalWrite(32,LOW);
+}
